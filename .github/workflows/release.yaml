@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags: [v\d+\.\d+\.\d+]
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Zip extensions
+        run: |
+          pnpm zip
+          pnpm zip:firefox
+
+      - name: Get version
+        id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Get tag message
+        id: tag
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$(git tag -l --format='%(contents)' ${{ steps.get_version.outputs.version }})" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create-release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          name: ${{ steps.get_version.outputs.version }}
+          tag: ${{ steps.get_version.outputs.version }}
+          body: "${{ steps.tag.outputs.message }}"
+          artifacts: ".output/*-chrome.zip,.output/*-firefox.zip"
+
+      - name: Publish release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const draftRelease = releases.data.find(r => r.draft && r.tag_name === '${{ steps.get_version.outputs.version }}');
+
+            if (draftRelease) {
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: draftRelease.id,
+                draft: false,
+                prerelease: false
+              });
+            }
+
+      # - name: Submit to stores
+      #   run: |
+      #     pnpm wxt submit \
+      #       --chrome-zip .output/*-chrome.zip \
+      #       --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+      #   env:
+      #     CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+      #     CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+      #     CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+      #     CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      #     FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+      #     FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+      #     FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}

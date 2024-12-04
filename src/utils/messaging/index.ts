@@ -1,0 +1,1 @@
+export * as extension from './extension';
