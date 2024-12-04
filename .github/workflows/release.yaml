@@ -24,7 +24,7 @@ jobs:
 
       - name: Zip extensions
         run: |
-          pnpm zip --crx
+          pnpm zip
           pnpm zip:firefox
 
       - name: Get version
