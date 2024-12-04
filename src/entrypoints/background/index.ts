@@ -10,11 +10,9 @@ export default defineBackground(() => {
     setupContextMenus()
   })
   browser.contextMenus.onClicked.addListener((info, tab) => {
-    console.log('info--->', info, tab)
     switch (info.menuItemId) {
       case CONTEXT_MENU_ITEMS.GENERATE_QR_SELECTION: {
         if (info.selectionText && tab?.id) {
-          console.log('info.selectionText--->', info.selectionText)
           sendMessage('openQrCodeDialog', {
             type: 'gen',
             result: info.selectionText
@@ -22,9 +20,22 @@ export default defineBackground(() => {
         }
         break
       }
+      case CONTEXT_MENU_ITEMS.BASE64_ENCODE: {
+        sendMessage('sendTextMessage', {
+          type: 'base64-encode',
+          result: info.selectionText!
+        }, tab?.id)
+        break
+      }
+      case CONTEXT_MENU_ITEMS.BASE64_DECODE: {
+        sendMessage('sendTextMessage', {
+          type: 'base64-decode',
+          result: info.selectionText!
+        }, tab?.id)
+        break
+      }
 
       case CONTEXT_MENU_ITEMS.GENERATE_QR_LINK: {
-        console.log('info.linkUrl--->', info.linkUrl)
         if (info.linkUrl && tab?.id) {
           sendMessage('openQrCodeDialog', {
             type: "gen",
@@ -60,11 +71,6 @@ export default defineBackground(() => {
       }
     }
   })
-  const handleMessage = (message: any) => {
-    console.log('message--->', message)
-    return true
-  }
-  browser.runtime.onMessage.addListener(handleMessage);
   // browser.action.onClicked.addListener((tab: any) => {
   //   console.log(tab);
   //   // browser.action.setPopup({ popup: "popup333.html" });

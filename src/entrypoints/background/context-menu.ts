@@ -1,11 +1,11 @@
-import { scanQRCodeFromImage } from "@/utils/qr-scanner"
-import { sendMessage } from "@/utils/messaging/extension";
 import { browser, ContextMenus, Tabs } from 'wxt/browser'
 
 export const CONTEXT_MENU_ITEMS = {
   GENERATE_QR_SELECTION: "generate-qr-selection",
   GENERATE_QR_LINK: "generate-qr-link",
-  SCAN_QR: "scan-qr"
+  SCAN_QR: "scan-qr",
+  BASE64_ENCODE: "base64-encode",
+  BASE64_DECODE: "base64-decode"
 } as const
 
 export function setupContextMenus() {
@@ -28,5 +28,17 @@ export function setupContextMenus() {
     id: CONTEXT_MENU_ITEMS.SCAN_QR,
     title: "解析二维码",
     contexts: ["image"]
+  })
+
+  browser.contextMenus.create({
+    id: CONTEXT_MENU_ITEMS.BASE64_ENCODE,
+    title: "Base64 编码",
+    contexts: ["selection"]
+  })
+
+  browser.contextMenus.create({
+    id: CONTEXT_MENU_ITEMS.BASE64_DECODE,
+    title: "Base64 解码",
+    contexts: ["selection"]
   })
 }
