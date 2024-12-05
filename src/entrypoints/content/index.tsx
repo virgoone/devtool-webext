@@ -17,6 +17,10 @@ export default defineContentScript({
       zIndex: 2147483647,
       isolateEvents: true,
       onMount: (uiContainer: HTMLElement, shadow: ShadowRoot) => {
+        if (window.top !== window && document.querySelector('#devtool-extension-root')) {
+          console.log('Extension already exists in this frame');
+          return;
+        }
         // 处理单个样式元素
         const processStyle = (style: HTMLStyleElement) => {
           if (!style.textContent?.includes('rem')) return;
