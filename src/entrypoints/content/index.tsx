@@ -17,7 +17,7 @@ export default defineContentScript({
       zIndex: 2147483647,
       isolateEvents: true,
       onMount: (uiContainer: HTMLElement, shadow: ShadowRoot) => {
-        if (window.top !== window && document.querySelector('#devtool-extension-root')) {
+        if (window.top !== window) {
           console.log('Extension already exists in this frame');
           return;
         }
