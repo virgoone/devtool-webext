@@ -2,7 +2,8 @@ import "./message";
 import { scanQRCodeFromImage } from "@/utils/qr-scanner"
 import { CONTEXT_MENU_ITEMS, setupContextMenus } from "./context-menu"
 import { browser } from 'wxt/browser'
-import { sendMessage } from "@/utils/messaging/extension";
+import { sendMessage } from "@/utils/messaging/extension"
+import { debug } from '@/utils/debug'
 
 export default defineBackground(() => {
   // 监听消息
@@ -10,8 +11,10 @@ export default defineBackground(() => {
     setupContextMenus()
   })
   browser.contextMenus.onClicked.addListener((info, tab) => {
+    debug('contextMenus on clicked', info, tab)
     switch (info.menuItemId) {
       case CONTEXT_MENU_ITEMS.GENERATE_QR_SELECTION: {
+        debug('generate qr selection', info.selectionText)
         if (info.selectionText && tab?.id) {
           sendMessage('openQrCodeDialog', {
             type: 'gen',
@@ -21,6 +24,7 @@ export default defineBackground(() => {
         break
       }
       case CONTEXT_MENU_ITEMS.BASE64_ENCODE: {
+        debug('base64 encode', info.selectionText)
         sendMessage('sendTextMessage', {
           type: 'base64-encode',
           result: info.selectionText!
@@ -28,6 +32,7 @@ export default defineBackground(() => {
         break
       }
       case CONTEXT_MENU_ITEMS.BASE64_DECODE: {
+        debug('base64 decode', info.selectionText)
         sendMessage('sendTextMessage', {
           type: 'base64-decode',
           result: info.selectionText!
@@ -37,6 +42,7 @@ export default defineBackground(() => {
 
       case CONTEXT_MENU_ITEMS.GENERATE_QR_LINK: {
         if (info.linkUrl && tab?.id) {
+          debug('gen qr link', info.linkUrl)
           sendMessage('openQrCodeDialog', {
             type: "gen",
             result: info.linkUrl
@@ -49,7 +55,7 @@ export default defineBackground(() => {
         if (info.srcUrl && tab?.id) {
           scanQRCodeFromImage(info.srcUrl)
             .then((result) => {
-              console.log('扫码成功--->', result, tab.id)
+              debug('扫码成功--->', result)
               if (result) {
                 // 发送消息给 content script 显示 Modal
                 sendMessage('openQrCodeDialog', {
@@ -59,7 +65,7 @@ export default defineBackground(() => {
               }
             })
             .catch((error) => {
-              console.error('扫码失败--->', error)
+              debug('扫码失败--->', error)
               // 可以选择显示错误 Modal
               sendMessage('openQrCodeDialog', {
                 type: "scan",

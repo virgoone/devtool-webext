@@ -3,6 +3,7 @@ import { onMessage } from "@/utils/messaging/extension";
 import { GenQRCodeModal } from "./mods/gen-qr-modal";
 import { ScanQRCodeModal } from "./mods/scan-qr-modal";
 import { useQRModal } from "~/hooks/use-qrcode-modal";
+import { debug } from '@/utils/debug'
 import { encode, decode } from "js-base64";
 import { toast } from "sonner"
 
@@ -12,7 +13,7 @@ export const App = () => {
   useEffect(() => {
     onMessage('openQrCodeDialog', message => {
       const { type, result } = message.data;
-      console.log('message.data--->', message.data)
+      debug('openQrCodeDialog', message.data)
       if (type === "scan") {
         showQRModal(result, "scan")
       } else if (type === "gen") {
@@ -21,6 +22,7 @@ export const App = () => {
     })
     onMessage('sendTextMessage', message => {
       const { type, result } = message.data;
+      debug('sendTextMessage', message.data)
       if (type && !result) {
         toast.error('文字内容不能为空')
         return
@@ -28,6 +30,7 @@ export const App = () => {
       if (type === "base64-encode") {
         const encoded = encode(result)
         toast.success('编码成功', {
+          duration: 10000,
           action: {
             label: '复制',
             onClick: () => {
@@ -40,6 +43,7 @@ export const App = () => {
       } else if (type === "base64-decode") {
         const decoded = decode(result)
         toast.success('解码成功', {
+          duration: 10000,
           action: {
             label: '复制',
             onClick: () => {
