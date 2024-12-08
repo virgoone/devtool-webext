@@ -88,9 +88,10 @@ function IndexPopup() {
   }, [])
 
   const onDataChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value || "chrome://newtab/"
     setOptions((options) => ({
       ...options,
-      data: event.target.value
+      data: value
     }))
   }
 
