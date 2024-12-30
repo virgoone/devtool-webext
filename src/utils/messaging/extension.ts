@@ -8,6 +8,7 @@ export interface ProtocolMap {
   getStringLength(message: { data: string }): number;
   download(options: Downloads.DownloadOptionsType & { path?: string }): number;
   openPopup(): void;
+  openOptionsPage(): void;
   openQrCodeDialog(data: { type: QRCodeDialogType, result: string }): void;
   sendTextMessage(data: { type: TextMessageType, result: string }): void;
 }

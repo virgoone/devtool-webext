@@ -1,16 +1,25 @@
-import { defineConfig } from "wxt";
+import { type PluginOption } from "vite"
+import { defineConfig } from "wxt"
+
+import type { Manifest } from "wxt/browser"
+
+import type { Command } from "@/constants/command"
+import react from "@vitejs/plugin-react-swc"
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  modules: ["@wxt-dev/module-react", "@wxt-dev/i18n/module"],
+  modules: ["@wxt-dev/i18n/module"],
   srcDir: "src",
+  vite: () => ({
+    plugins: [react()] as PluginOption[]
+  }),
   manifest: {
-    name: '__MSG_extName__',
-    description: '__MSG_extDescription__',
-    default_locale: 'zh_CN',
+    name: "__MSG_extName__",
+    description: "__MSG_extDescription__",
+    default_locale: "zh_CN",
     minimum_chrome_version: "102",
     background: {
-      type: 'module'
+      type: "module"
     },
     permissions: [
       "activeTab",
@@ -19,11 +28,26 @@ export default defineConfig({
       "clipboardRead",
       "scripting",
       "offscreen",
-			"userScripts",
-      "tabs"
+      "userScripts",
+      "tabs",
+      "sidePanel",
+      "storage",
+      "webRequest"
     ],
-    host_permissions: [
-      "<all_urls>"
-    ],
+    commands: {
+      openOptionsPage: {
+        description: "Open the Options page",
+        suggested_key: {
+          default: "Alt+O"
+        }
+      }
+    } satisfies Record<Command, Manifest.WebExtensionManifestCommandsType>,
+    host_permissions: ["<all_urls>"],
+    web_accessible_resources: [
+      {
+        resources: ["/assets/highlight-painter.js"],
+        matches: ["<all_urls>"]
+      }
+    ]
   }
-});
+})

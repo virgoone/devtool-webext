@@ -21,6 +21,28 @@ popup:
   batchExportPost: Batch export $1 data
   batchExportPostByUrl: Export based on $1 links
   batchExportPostComment: Batch export $1 comments
+options:
+  title: Options
+  general:
+    basic: Basic Settings
+    help: Help
+    feedback: Feedback
+  basic:
+    title: Basic Settings
+    appearance:
+      title: Appearance
+      theme: Theme
+      placeholder: Select theme
+      options:
+        auto: Auto
+        light: Light
+        dark: Dark
+    language:
+      title: Language
+      placeholder: Select language
+      options:
+        zh: Simplified Chinese
+        en: English
 content:
   mods:
     scanQRCodeModal:

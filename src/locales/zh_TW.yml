@@ -16,6 +16,28 @@ popup:
   wechat: 作者微信
   donate: 打赏作者
   help: 帮助｜更新日志
+options:
+  title: 設置
+  general:
+    basic: 基礎設置
+    help: 幫助
+    feedback: 反饋
+  basic:
+    title: 基礎設置
+    appearance:
+      title: 外觀
+      theme: 主題
+      placeholder: 選擇主題
+      options:
+        auto: 自動
+        light: 淺色
+        dark: 深色
+    language:
+      title: 語言
+      placeholder: 選擇語言
+      options:
+        zh: 簡體中文
+        en: 英文
 content:
   mods:
     scanQRCodeModal:
