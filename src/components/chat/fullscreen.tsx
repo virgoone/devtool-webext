@@ -5,7 +5,7 @@ import { Button } from "../ui/button"
 
 export function FullScreen(props: any) {
   const { children, right = 10, top = 10, ...rest } = props
-  const ref = useRef<HTMLDivElement>()
+  const ref = useRef<HTMLDivElement | null>(null)
   const [fullScreen, setFullScreen] = useState(false)
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {

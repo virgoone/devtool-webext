@@ -1,4 +1,4 @@
-import { browser, ContextMenus, Tabs } from 'wxt/browser'
+import { browser } from 'wxt/browser'
 
 export const CONTEXT_MENU_ITEMS = {
   GENERATE_QR_SELECTION: "generate-qr-selection",

@@ -55,17 +55,17 @@ export function FloatingToolbar() {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [selectedText, setSelectedText] = useState("")
   const [showQRCode, setShowQRCode] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const toolbarRef = useRef<HTMLDivElement>(null)
   const qrRef = useRef<HTMLDivElement>(null)
-  const qrCode = useRef<QRCodeStyling>()
+  const qrCode = useRef<QRCodeStyling>(null)
 
   useEffect(() => {
     const handleSelection = () => {
       const selection = window.getSelection()
       const text = selection?.toString().trim()
       if (!text) {
-        setVisible(false)
-        setShowQRCode(false)
+        handleCloseToolbar()
         return
       }
 
@@ -136,7 +136,7 @@ export function FloatingToolbar() {
         height: 200,
         type: "svg" as DrawType,
         data: selectedText,
-        margin: 5,
+        margin: 1,
         qrOptions: {
           typeNumber: 0 as TypeNumber,
           mode: "Byte" as Mode,
@@ -193,7 +193,7 @@ export function FloatingToolbar() {
     try {
       await navigator.clipboard.writeText(selectedText)
       toast.success("已复制到剪贴板")
-      setVisible(false)
+      handleCloseToolbar()
     } catch (err) {
       toast.error("复制失败")
     }
@@ -201,6 +201,16 @@ export function FloatingToolbar() {
 
   const handleGoToSettings = () => {
     sendMessage("openOptionsPage", undefined)
+  }
+
+  // 统一的关闭方法
+  const handleCloseToolbar = () => {
+    // 先关闭所有弹窗，再隐藏工具栏
+    setShowQRCode(false)
+    setDropdownOpen(false)
+    setTimeout(() => {
+      setVisible(false)
+    }, 150)
   }
 
   const handleBase64Encode = () => {
@@ -216,7 +226,7 @@ export function FloatingToolbar() {
       },
       description: encoded
     })
-    setVisible(false)
+    handleCloseToolbar()
   }
 
   const handleBase64Decode = () => {
@@ -233,7 +243,7 @@ export function FloatingToolbar() {
         },
         description: decoded
       })
-      setVisible(false)
+      handleCloseToolbar()
     } catch (err) {
       toast.error("解码失败，请确保输入正确的Base64字符串")
     }
@@ -244,7 +254,7 @@ export function FloatingToolbar() {
       <div
         ref={toolbarRef}
         className={cn(
-          "fixed z-[2147483647] flex items-center gap-1 p-1 bg-white rounded-lg shadow-lg",
+          "fixed z-[2147483647] flex items-center gap-0.5 p-1.5 bg-white/95 backdrop-blur-sm rounded-xl shadow-md border border-gray-200/50",
           {
             hidden: !visible || playbackVisible
           }
@@ -257,62 +267,74 @@ export function FloatingToolbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-8"
+          className="h-7 w-7 hover:bg-gray-100/80"
           onClick={handleCopy}>
-          <img src={icon} alt="icon" className="size-4 rounded-full" />
+          <img src={icon} alt="icon" className="size-3.5 rounded-full" />
         </Button>
 
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-7 w-7 hover:bg-gray-100/80"
           onClick={handleCopy}>
-          <Copy className="h-4 w-4" />
+          <Copy className="h-3.5 w-3.5 text-gray-600" />
         </Button>
 
         <Popover open={showQRCode} onOpenChange={setShowQRCode}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <QrCode className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 hover:bg-gray-100/80">
+              <QrCode className="h-3.5 w-3.5 text-gray-600" />
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-[220px] p-2"
+            className="!p-0 w-[230px] h-[230px] flex items-center justify-center bg-white/95 backdrop-blur-sm border border-gray-200/50 shadow-xl rounded-2xl"
+            side="top"
+            align="center"
+            sideOffset={8}
             onPointerDownOutside={(e) => {
               if (qrRef.current?.contains(e.target as Node)) {
                 e.preventDefault()
               }
             }}>
-            <div ref={qrRef} className="w-[200px] h-[200px]" />
+            <div
+              ref={qrRef}
+              className="w-[200px] h-[200px] rounded-xl overflow-hidden"
+            />
           </PopoverContent>
         </Popover>
 
-        <DropdownMenu>
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 hover:bg-gray-100/80">
+              <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-[180px] rounded-xl bg-white shadow-lg border-none p-1.5">
+          <DropdownMenuContent className="min-w-[180px] rounded-xl bg-white/95 backdrop-blur-sm shadow-lg border border-gray-200/50 p-2">
             <DropdownMenuItem
-              className="gap-2 px-3 py-2.5 text-sm text-gray-700 focus:bg-gray-100 rounded-lg hover:bg-gray-100"
+              className="gap-2 px-3 py-2 text-sm text-gray-700 focus:bg-gray-100/80 rounded-lg hover:bg-gray-100/80"
               onClick={handleCopy}>
-              <Copy className="h-4 w-4" />
+              <Copy className="h-3.5 w-3.5" />
               <span className="flex-1">复制</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="gap-2 px-3 py-2.5 text-sm text-gray-700 focus:bg-gray-100 rounded-lg hover:bg-gray-100"
+              className="gap-2 px-3 py-2 text-sm text-gray-700 focus:bg-gray-100/80 rounded-lg hover:bg-gray-100/80"
               onClick={handleBase64Encode}>
-              <Type className="h-4 w-4" />
+              <Type className="h-3.5 w-3.5" />
               <span className="flex-1">Base64 编码</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="gap-2 px-3 py-2.5 text-sm text-gray-700 focus:bg-gray-100 rounded-lg hover:bg-gray-100"
+              className="gap-2 px-3 py-2 text-sm text-gray-700 focus:bg-gray-100/80 rounded-lg hover:bg-gray-100/80"
               onClick={handleBase64Decode}>
-              <Type className="h-4 w-4" />
+              <Type className="h-3.5 w-3.5" />
               <span className="flex-1">Base64 解码</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuSeparator className="my-1" />
 
             {/* <DropdownMenuItem
               className="gap-2 px-3 py-2.5 text-sm text-gray-700 focus:bg-gray-100 rounded-lg hover:bg-gray-100"
@@ -338,9 +360,9 @@ export function FloatingToolbar() {
               <span className="flex-1">扩展长度</span>
             </DropdownMenuItem> */}
             <DropdownMenuItem
-              className="gap-2 px-3 py-2.5 text-sm text-gray-700 focus:bg-gray-100 rounded-lg hover:bg-gray-100"
+              className="gap-2 px-3 py-2 text-sm text-gray-700 focus:bg-gray-100/80 rounded-lg hover:bg-gray-100/80"
               onClick={handleGoToSettings}>
-              <Settings2 className="size-4" />
+              <Settings2 className="h-3.5 w-3.5" />
               <span className="flex-1">设置</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -348,9 +370,9 @@ export function FloatingToolbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
-          onClick={() => setVisible(false)}>
-          <X className="h-4 w-4" />
+          className="h-7 w-7 hover:bg-gray-100/80"
+          onClick={handleCloseToolbar}>
+          <X className="h-3.5 w-3.5 text-gray-600" />
         </Button>
       </div>
       {selectedText && (

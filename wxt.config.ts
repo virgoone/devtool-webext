@@ -1,8 +1,6 @@
 import { type PluginOption } from "vite"
 import { defineConfig } from "wxt"
 
-import type { Manifest } from "wxt/browser"
-
 import type { Command } from "@/constants/command"
 import react from "@vitejs/plugin-react-swc"
 
@@ -22,6 +20,7 @@ export default defineConfig({
       type: "module"
     },
     permissions: [
+      "storage",
       "activeTab",
       "contextMenus",
       "clipboardWrite",
@@ -41,7 +40,7 @@ export default defineConfig({
           default: "Alt+O"
         }
       }
-    } satisfies Record<Command, Manifest.WebExtensionManifestCommandsType>,
+    },
     host_permissions: ["<all_urls>"],
     web_accessible_resources: [
       {

@@ -1,6 +1,6 @@
 import { StateStorage } from "zustand/middleware"
 
-import { storage, StorageArea } from "wxt/storage"
+import { storage, StorageArea } from "@wxt-dev/storage"
 
 class WXTStorage implements StateStorage {
   public async getItem(
