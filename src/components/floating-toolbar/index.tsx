@@ -45,11 +45,16 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip"
 import { cn } from "@/utils"
+import { debug } from "@/utils/debug"
 import { sendMessage } from "@/utils/messaging/extension"
 
 import PlaybackToolbar from "./playback-toolbar"
 
-export function FloatingToolbar() {
+interface FloatingToolbarProps {
+  isQRModalOpen?: boolean
+}
+
+export function FloatingToolbar({ isQRModalOpen = false }: FloatingToolbarProps) {
   const [visible, setVisible] = useState(false)
   const [playbackVisible, setPlaybackVisible] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -62,6 +67,12 @@ export function FloatingToolbar() {
 
   useEffect(() => {
     const handleSelection = () => {
+      // 如果二维码弹窗开启，直接忽略所有文本选择
+      if (isQRModalOpen) {
+        debug('二维码弹窗开启中，忽略文本选择')
+        return
+      }
+      
       const selection = window.getSelection()
       const text = selection?.toString().trim()
       if (!text) {
@@ -126,7 +137,7 @@ export function FloatingToolbar() {
       // document.removeEventListener("mouseup", handleMouseUp)
       document.removeEventListener("selectionchange", handleSelection)
     }
-  }, [])
+  }, [isQRModalOpen])
 
   // QR Code generation logic...
   useEffect(() => {

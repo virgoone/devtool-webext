@@ -66,3 +66,7 @@ content:
         copySuccess: Copied
         copyError: Copy failed
         download: Download image
+  linkQRInjector:
+    title: Link QR Icons
+    description: Show QR code icons next to page links, click to generate QR code
+    iconTooltip: Click to generate QR code

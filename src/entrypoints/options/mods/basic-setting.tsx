@@ -12,6 +12,7 @@ import {
   LogOut,
   Mail,
   MessageSquare,
+  QrCode,
   RefreshCw,
   Settings,
   Sparkles,
@@ -208,6 +209,21 @@ export default function BasicSetting() {
                       </FormItem>
                     )}
                   />
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4 !mt-4">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <QrCode className="w-4 h-4 text-gray-600" />
+                        <label className="text-base font-medium">{t("content.linkQRInjector.title")}</label>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {t("content.linkQRInjector.description")}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={config.enableLinkQRIcons}
+                      onCheckedChange={config.setEnableLinkQRIcons}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </section>
@@ -395,7 +411,11 @@ export default function BasicSetting() {
                                 placeholder={t(
                                   "basic.ai.customWebsite.placeholder"
                                 )}
-                                {...field}
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                name={field.name}
+                                ref={field.ref}
                               />
                             </FormControl>
                             <FormMessage />
@@ -433,7 +453,11 @@ export default function BasicSetting() {
                                 placeholder={t(
                                   "basic.ai.customModel.placeholder"
                                 )}
-                                {...field}
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                name={field.name}
+                                ref={field.ref}
                               />
                             </FormControl>
                             <FormMessage />

@@ -1,10 +1,12 @@
 import { decode, encode } from "js-base64"
-import { useEffect } from "react"
+import { useEffect, useCallback } from "react"
 import { toast } from "sonner"
 
 import { useQRModal } from "~/hooks/use-qrcode-modal"
 import { FloatingToolbar } from "@/components/floating-toolbar"
+import { LinkQRInjector } from "@/components/link-qr-injector"
 import { Toaster } from "@/components/ui/sonner"
+import { useAppConfig } from "@/store/config"
 import { debug } from "@/utils/debug"
 import { onMessage } from "@/utils/messaging/extension"
 
@@ -13,6 +15,12 @@ import { ScanQRCodeModal } from "./mods/scan-qr-modal"
 
 export const App = () => {
   const { qrResult, showType, showQRModal, hideQRModal } = useQRModal()
+  const config = useAppConfig()
+
+  // 使用 useCallback 稳定化回调函数，防止 LinkQRInjector 不必要的重新渲染
+  const handleGenerateQR = useCallback((url: string) => {
+    showQRModal(url, "gen")
+  }, [showQRModal])
 
   useEffect(() => {
     onMessage("openQrCodeDialog", (message) => {
@@ -64,7 +72,11 @@ export const App = () => {
   return (
     <>
       <Toaster position="top-center" theme="light" richColors expand />
-      <FloatingToolbar />
+      <FloatingToolbar isQRModalOpen={!!showType} />
+      <LinkQRInjector
+        onGenerateQR={handleGenerateQR}
+        enabled={config.enableLinkQRIcons}
+      />
       {showType === "scan" && (
         <ScanQRCodeModal result={qrResult} onClose={hideQRModal} />
       )}

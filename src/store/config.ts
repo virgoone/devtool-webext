@@ -59,6 +59,8 @@ export const DEFAULT_CONFIG = {
   dontShowMaskSplashScreen: false, // dont show splash screen when create chat
   hideBuiltinMasks: false, // dont add builtin masks
 
+  enableLinkQRIcons: true, // show QR code icons next to links
+
   modelConfig: {
     providerName: "OpenAI" as ServiceProvider,
     apiKey: "",
@@ -154,6 +156,12 @@ export const useAppConfig = createPersistStore(
     setLanguage(language: Language) {
       set(() => ({
         language
+      }))
+    },
+
+    setEnableLinkQRIcons(enableLinkQRIcons: boolean) {
+      set(() => ({
+        enableLinkQRIcons
       }))
     },
 
