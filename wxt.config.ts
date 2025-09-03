@@ -42,7 +42,11 @@ export default defineConfig({
     host_permissions: ["<all_urls>"],
     web_accessible_resources: [
       {
-        resources: ["/assets/highlight-painter.js"],
+        resources: [
+          "/assets/highlight-painter.js",
+          "/assets/tailwind.css",
+          "/content-scripts/content.css"
+        ],
         matches: ["<all_urls>"]
       }
     ]
