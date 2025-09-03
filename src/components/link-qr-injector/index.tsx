@@ -190,6 +190,46 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
     [onGenerateQR]
   )
 
+  // 处理a标签内的文本URL（特殊处理，避免破坏链接结构）
+  const processTextUrlInLink = useCallback(
+    (textNode: Node, linkElement: HTMLAnchorElement, urls: string[]) => {
+      const text = textNode.textContent || ""
+      const validUrls = urls.filter(url => isValidUrlText(url) && !processedUrls.current.has(url))
+      
+      if (validUrls.length === 0) {
+        markTextNodeAsProcessed(textNode)
+        return
+      }
+
+      debug(`在a标签内处理 ${validUrls.length} 个文本URL`)
+
+      // 为每个有效URL创建图标
+      validUrls.forEach(url => {
+        const icon = createTextQRIcon(url)
+        processedUrls.current.add(url)
+        
+        // 将图标插入到a标签后面，而不是内部
+        const linkParent = linkElement.parentElement
+        if (linkParent) {
+          // 在链接后面插入图标
+          if (linkElement.nextSibling) {
+            linkParent.insertBefore(icon, linkElement.nextSibling)
+          } else {
+            linkParent.appendChild(icon)
+          }
+          
+          // 添加一点间距
+          icon.style.marginLeft = "4px"
+          
+          debug(`✅ 成功为a标签内的文本URL添加外部图标: ${url}`)
+        }
+      })
+
+      markTextNodeAsProcessed(textNode)
+    },
+    [createTextQRIcon]
+  )
+
   // 处理包含URL的文本节点
   const processTextNode = useCallback(
     (textNode: Node) => {
@@ -224,6 +264,17 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
         // 检查父元素是否应该跳过
         if (shouldSkipTextContainer(parent)) {
           markTextNodeAsProcessed(textNode)
+          return
+        }
+
+        // 特殊处理：如果父元素是a标签，需要特别小心处理
+        const isInLinkTag = parent.tagName.toLowerCase() === 'a'
+        if (isInLinkTag) {
+          debug(`检测到a标签内的文本URL，父链接href: ${parent.getAttribute('href')}`)
+          
+          // 对于a标签内的文本URL，我们采用外部插入的方式
+          // 避免破坏原有链接的点击功能
+          processTextUrlInLink(textNode, parent as HTMLAnchorElement, allUrls)
           return
         }
 
@@ -326,7 +377,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
 
   // 检查文本容器是否应该跳过
   const shouldSkipTextContainer = (element: Element): boolean => {
-    // 跳过脚本、样式、代码等标签
+    // 跳过脚本、样式、代码等标签，但允许处理a标签内的文本URL
     const tagName = element.tagName.toLowerCase()
     const skipTags = [
       "script",
@@ -335,8 +386,8 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       "pre",
       "textarea",
       "input",
-      "noscript",
-      "a" // 跳过链接标签内的文本，避免在已经是链接的文本上添加二维码图标
+      "noscript"
+      // 移除 "a" - 允许处理a标签内的文本URL
     ]
     if (skipTags.includes(tagName)) return true
 
@@ -548,8 +599,10 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
     [onGenerateQR, createQRIcon]
   )
 
-  // 处理页面中的所有文本节点
+  // 性能优化的文本节点处理
   const processAllTextNodes = useCallback(() => {
+    const startTime = performance.now()
+    
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -578,11 +631,15 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
 
     const textNodes: Node[] = []
     let node
-    while ((node = walker.nextNode())) {
+    let nodeCount = 0
+    const MAX_NODES_PER_SCAN = 100 // 限制每次扫描的节点数量以避免卡顿
+    
+    while ((node = walker.nextNode()) && nodeCount < MAX_NODES_PER_SCAN) {
       textNodes.push(node)
+      nodeCount++
     }
 
-    debug(`检测到 ${textNodes.length} 个包含URL的文本节点`)
+    debug(`检测到 ${textNodes.length} 个包含URL的文本节点${nodeCount >= MAX_NODES_PER_SCAN ? ' (已限制)' : ''}`)
 
     let processedCount = 0
     textNodes.forEach((textNode) => {
@@ -590,7 +647,14 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       processedCount++
     })
 
-    debug(`文本节点处理完成 - 处理: ${processedCount}`)
+    const endTime = performance.now()
+    const duration = endTime - startTime
+    debug(`文本节点处理完成 - 处理: ${processedCount}, 耗时: ${duration.toFixed(2)}ms`)
+    
+    // 性能预警
+    if (duration > 100) {
+      debug(`⚠️ 文本节点处理耗时较长: ${duration.toFixed(2)}ms`)
+    }
   }, [processTextNode])
 
   // 处理页面中的所有链接
@@ -676,7 +740,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
             processTextNode(node)
           }
         })
-      }, 300) // 300ms防抖
+      }, 500) // 适度的防抖时间，平衡响应速度和性能
     },
     [processTextNode]
   )
@@ -826,30 +890,129 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
         subtree: true
       })
 
-      // 减少定期扫描频率，并且只有在页面活跃时才扫描
+      // 智能动态内容处理 - 性能优化版本
       let scanCount = 0
-      const maxScans = 6 // 最多扫描6次（1分钟）
+      let lastContentLength = document.body.textContent?.length || 0
+      let hasRecentActivity = false
+      const maxInitialScans = 8 // 减少初始密集扫描次数
+      const maxLongTermScans = 15 // 减少总扫描次数以避免性能问题
 
       const intervalId = setInterval(() => {
-        // 检查页面是否可见和活跃
-        if (document.hidden || scanCount >= maxScans) {
-          debug(
-            `LinkQRInjector: 停止定期扫描 (hidden: ${document.hidden}, scanCount: ${scanCount})`
-          )
+        // 检查页面是否可见
+        if (document.hidden) {
+          debug(`LinkQRInjector: 页面隐藏，暂停扫描`)
+          return
+        }
+
+        // 性能优化：检查页面内容是否有变化
+        const currentContentLength = document.body.textContent?.length || 0
+        const contentChanged = Math.abs(currentContentLength - lastContentLength) > 100 // 内容变化超过100字符才扫描
+        
+        if (scanCount >= maxLongTermScans && !hasRecentActivity) {
+          debug(`LinkQRInjector: 达到最大扫描次数且无活动，停止定期扫描`)
           clearInterval(intervalId)
           return
         }
 
         scanCount++
-        debug(`LinkQRInjector: 定期重新扫描 (${scanCount}/${maxScans})`)
-        processAll()
-      }, 10000) // 保持每10秒扫描一次，但限制次数
+        const isInitialPhase = scanCount <= maxInitialScans
+        
+        // 智能扫描：只在内容变化或初始阶段时进行全量扫描
+        if (isInitialPhase || contentChanged || hasRecentActivity) {
+          debug(
+            `LinkQRInjector: 执行扫描 (${scanCount}/${maxLongTermScans}) ${
+              isInitialPhase ? "[初始]" : contentChanged ? "[内容变化]" : "[用户活动]"
+            }`
+          )
+          processAll()
+          lastContentLength = currentContentLength
+          hasRecentActivity = false // 重置活动标志
+        } else {
+          debug(`LinkQRInjector: 跳过扫描 - 无内容变化 (${scanCount}/${maxLongTermScans})`)
+        }
+      }, 8000) // 调整为8秒，减少扫描频率
+
+      // 性能优化的滚动触发检测
+      let scrollTimer: NodeJS.Timeout | undefined
+      let lastScrollTime = 0
+      const SCROLL_THROTTLE = 2000 // 滚动节流：2秒内最多触发一次
+      
+      const handleScroll = () => {
+        const now = Date.now()
+        if (now - lastScrollTime < SCROLL_THROTTLE) {
+          return // 节流：避免过于频繁的滚动检测
+        }
+        
+        if (scrollTimer) clearTimeout(scrollTimer)
+        scrollTimer = setTimeout(() => {
+          debug("LinkQRInjector: 滚动触发内容检查")
+          hasRecentActivity = true // 标记有用户活动
+          // 不立即执行 processAll，而是等待下次定时扫描
+          lastScrollTime = now
+        }, 1500) // 滚动停止1.5秒后标记活动
+      }
+
+      // 监听滚动事件（性能优化版本）
+      window.addEventListener("scroll", handleScroll, { passive: true })
+
+      // 性能优化的点击事件检测
+      let clickTimer: NodeJS.Timeout | undefined
+      let lastClickTime = 0
+      const CLICK_THROTTLE = 3000 // 点击节流：3秒内最多触发一次
+      
+      const handleClick = (e: Event) => {
+        const now = Date.now()
+        if (now - lastClickTime < CLICK_THROTTLE) {
+          return // 节流：避免频繁的点击检测
+        }
+        
+        const target = e.target as Element
+        if (!target) return
+
+        // 优化的选择器检查：只检查最可能的触发元素
+        const quickCheck = target.tagName === 'BUTTON' || 
+                          target.classList.contains('btn') ||
+                          target.classList.contains('button')
+        
+        if (!quickCheck) {
+          // 如果不是明显的按钮，进行更详细但开销更大的检查
+          const detailedSelectors = [
+            '[class*="more"]',
+            '[class*="load"]',
+            '[class*="show"]',
+            '[class*="expand"]'
+          ]
+          
+          const needsDetailedCheck = detailedSelectors.some(selector => {
+            try {
+              return target.matches(selector)
+            } catch {
+              return false
+            }
+          })
+          
+          if (!needsDetailedCheck) return
+        }
+
+        if (clickTimer) clearTimeout(clickTimer)
+        clickTimer = setTimeout(() => {
+          debug("LinkQRInjector: 检测到动态内容触发点击")
+          hasRecentActivity = true // 标记有用户活动，等待下次定时扫描
+          lastClickTime = now
+        }, 2000) // 点击后2秒标记活动
+      }
+
+      document.addEventListener("click", handleClick, { passive: true })
 
       // 清理函数
       return () => {
         if (timeoutId) clearTimeout(timeoutId)
+        if (scrollTimer) clearTimeout(scrollTimer)
+        if (clickTimer) clearTimeout(clickTimer)
         observer?.disconnect()
         clearInterval(intervalId)
+        window.removeEventListener("scroll", handleScroll)
+        document.removeEventListener("click", handleClick)
         cleanupQRIcons()
       }
     } else {
