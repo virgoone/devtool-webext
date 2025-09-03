@@ -417,7 +417,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
     }
 
     // 检查链接是否有特殊类名
-    const className = link.className.toLowerCase()
+    const className = link?.className?.toLowerCase() || ""
     const skipClasses = [
       "btn",
       "button",
