@@ -1,4 +1,4 @@
-import { i18n } from "#i18n"
+// import { i18n } from "#i18n"
 import {
   Check,
   Download,
@@ -11,8 +11,9 @@ import {
   X
 } from "lucide-react"
 import { useRef, useState } from "react"
-import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
+
 import "@/locales"
 
 import { Button } from "@/components/ui/button"
@@ -56,7 +57,8 @@ export default function QRRulesSetting() {
     name: "",
     parameters: [],
     enabled: true,
-    description: ""
+    description: "",
+    domainPattern: "*"
   })
 
   // 创建新参数
@@ -306,11 +308,14 @@ export default function QRRulesSetting() {
                                 {rule.description}
                               </p>
                             )}
-                            
+
                             {/* 域名匹配 */}
                             <div className="mb-3">
                               <span className="text-xs text-gray-500">
-                                域名匹配: <span className="font-mono text-blue-600">{rule.domainPattern || "*"}</span>
+                                域名匹配:{" "}
+                                <span className="font-mono text-blue-600">
+                                  {rule.domainPattern || "*"}
+                                </span>
                               </span>
                             </div>
 
@@ -426,32 +431,34 @@ export default function QRRulesSetting() {
                   />
                 </div>
 
-                                  <div className="space-y-2">
-                    <Label htmlFor="domainPattern">
-                      {t("options.qrRules.dialog.domainPattern")}
-                    </Label>
-                    <Input
-                      id="domainPattern"
-                      value={domainPattern}
-                      onChange={(e) => setDomainPattern(e.target.value)}
-                      placeholder={t("options.qrRules.dialog.domainPatternPlaceholder")}
-                    />
-                    <p className="text-xs text-gray-500">
-                      {t("options.qrRules.dialog.domainPatternDescription")}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="ruleEnabled"
-                      checked={ruleEnabled}
-                      onCheckedChange={setRuleEnabled}
-                    />
-                    <Label htmlFor="ruleEnabled">
-                      {t("options.qrRules.dialog.ruleEnabled")}
-                    </Label>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="domainPattern">
+                    {t("options.qrRules.dialog.domainPattern")}
+                  </Label>
+                  <Input
+                    id="domainPattern"
+                    value={domainPattern}
+                    onChange={(e) => setDomainPattern(e.target.value)}
+                    placeholder={t(
+                      "options.qrRules.dialog.domainPatternPlaceholder"
+                    )}
+                  />
+                  <p className="text-xs text-gray-500">
+                    {t("options.qrRules.dialog.domainPatternDescription")}
+                  </p>
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ruleEnabled"
+                    checked={ruleEnabled}
+                    onCheckedChange={setRuleEnabled}
+                  />
+                  <Label htmlFor="ruleEnabled">
+                    {t("options.qrRules.dialog.ruleEnabled")}
+                  </Label>
+                </div>
+              </div>
 
               {/* 参数配置 */}
               <div className="space-y-4 border-t pt-4">

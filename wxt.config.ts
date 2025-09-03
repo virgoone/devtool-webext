@@ -6,15 +6,13 @@ import react from "@vitejs/plugin-react-swc"
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  modules: ["@wxt-dev/i18n/module"],
   srcDir: "src",
   vite: () => ({
     plugins: [react()] as PluginOption[]
   }),
   manifest: {
-    name: "__MSG_extName__",
-    description: "__MSG_extDescription__",
-    default_locale: "zh_CN",
+    name: "程序员助手 - 开发辅助工具",
+    description: "开发辅助工具，支持一键生成二维码、扫码识别二维码等...",
     minimum_chrome_version: "102",
     background: {
       type: "module"

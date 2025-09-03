@@ -138,10 +138,10 @@
 .CollapsibleContent {
   overflow: hidden;
 }
-.CollapsibleContent[data-state='open'] {
+.CollapsibleContent[data-state="open"] {
   animation: slideDown 300ms ease-out;
 }
-.CollapsibleContent[data-state='closed'] {
+.CollapsibleContent[data-state="closed"] {
   animation: slideUp 300ms ease-out;
 }
 
@@ -163,7 +163,6 @@
   }
 }
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -172,7 +171,6 @@
     @apply bg-background text-foreground;
   }
 }
-
 
 :host {
   font-size: 16px !important;
@@ -193,9 +191,35 @@
 
 .shadow-card {
   box-shadow:
-    0 0 0 1px rgba(114, 118, 139, .08),
+    0 0 0 1px rgba(114, 118, 139, 0.08),
     0 2px 8px #0c0d1905,
     0 4px 16px #0c0d1905,
     0 8px 32px #0c0d1905;
   border-radius: 12px;
+}
+
+.qr-modal-scroll {
+  overflow: scroll !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+.qr-modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.qr-modal-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+.qr-modal-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.qr-modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+:host html {
+  z-index: 99999 !important;
 }

@@ -23,13 +23,13 @@ const QRIconComponent = ({
       e.stopPropagation()
 
       debug("点击二维码图标，准备生成二维码")
-      
+
       // 设置标志，防止 FloatingToolbar 闪现
       // @ts-ignore
       window._devtoolQRIconClicking = true
-      
+
       onClick()
-      
+
       // 短时间后清除标志
       setTimeout(() => {
         // @ts-ignore
@@ -335,7 +335,8 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       "pre",
       "textarea",
       "input",
-      "noscript"
+      "noscript",
+      "a" // 跳过链接标签内的文本，避免在已经是链接的文本上添加二维码图标
     ]
     if (skipTags.includes(tagName)) return true
 
@@ -620,13 +621,12 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
     )
   }, [processLink])
 
-  // 处理所有类型的链接和文本URL
+  // 只处理文本中的URL，不处理已经是链接的内容
   const processAll = useCallback(() => {
-    debug("=== 开始全面检测 ===")
-    processAllLinks() // 处理<a>标签
-    processAllTextNodes() // 处理文本中的URL
+    debug("=== 开始全面检测（仅处理文本URL） ===")
+    processAllTextNodes() // 只处理文本中的URL
     debug("=== 检测完成 ===")
-  }, [processAllLinks, processAllTextNodes])
+  }, [processAllTextNodes])
 
   // 防抖处理新节点
   const debouncedProcessNewNodes = useCallback(
@@ -640,18 +640,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element
 
-            // 如果节点本身是链接
-            if (element.tagName === "A" && element.hasAttribute("href")) {
-              processLink(element as HTMLAnchorElement)
-            }
-
-            // 查找节点内的链接
-            const links = element.querySelectorAll(
-              "a[href]"
-            ) as NodeListOf<HTMLAnchorElement>
-            links.forEach(processLink)
-
-            // 处理元素内的文本节点
+            // 只处理元素内的文本节点，不处理链接
             const walker = document.createTreeWalker(
               element,
               NodeFilter.SHOW_TEXT,
@@ -689,7 +678,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
         })
       }, 300) // 300ms防抖
     },
-    [processLink, processTextNode]
+    [processTextNode]
   )
 
   // 处理新添加的节点
@@ -748,9 +737,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       }
     })
 
-    // 移除所有链接的标记
-    const processedLinks = document.querySelectorAll("a[data-qr-injected]")
-    processedLinks.forEach((link) => link.removeAttribute("data-qr-injected"))
+    // 注意：不再处理链接标记，因为我们只处理文本URL
 
     // 恢复被处理的文本节点（将包装容器内容恢复为原文本）
     const processedContainers = document.querySelectorAll(
@@ -812,19 +799,7 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
         let hasRelevantChanges = false
 
         mutations.forEach((mutation) => {
-          // 检查属性变化（可能是href属性被修改）
-          if (
-            mutation.type === "attributes" &&
-            mutation.target.nodeType === Node.ELEMENT_NODE
-          ) {
-            const element = mutation.target as Element
-            if (element.tagName === "A" && mutation.attributeName === "href") {
-              hasRelevantChanges = true
-              addedNodes.push(element)
-            }
-          }
-
-          // 检查新增节点
+          // 只检查新增节点，不再处理链接属性变化
           mutation.addedNodes.forEach((node) => {
             // 跳过我们自己添加的图标
             if (node.nodeType === Node.ELEMENT_NODE) {
@@ -845,26 +820,26 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
         }
       })
 
-      // 开始观察页面变化，包括属性变化
+      // 开始观察页面变化，只监听DOM结构变化
       observer.observe(document.body, {
         childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["href"]
+        subtree: true
       })
 
       // 减少定期扫描频率，并且只有在页面活跃时才扫描
       let scanCount = 0
       const maxScans = 6 // 最多扫描6次（1分钟）
-      
+
       const intervalId = setInterval(() => {
         // 检查页面是否可见和活跃
         if (document.hidden || scanCount >= maxScans) {
-          debug(`LinkQRInjector: 停止定期扫描 (hidden: ${document.hidden}, scanCount: ${scanCount})`)
+          debug(
+            `LinkQRInjector: 停止定期扫描 (hidden: ${document.hidden}, scanCount: ${scanCount})`
+          )
           clearInterval(intervalId)
           return
         }
-        
+
         scanCount++
         debug(`LinkQRInjector: 定期重新扫描 (${scanCount}/${maxScans})`)
         processAll()

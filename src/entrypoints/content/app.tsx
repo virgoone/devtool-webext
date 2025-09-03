@@ -7,6 +7,7 @@ import { FloatingToolbar } from "@/components/floating-toolbar"
 import { LinkQRInjector } from "@/components/link-qr-injector"
 import { Toaster } from "@/components/ui/sonner"
 import { useAppConfig } from "@/store/config"
+
 import { debug } from "@/utils/debug"
 import { onMessage } from "@/utils/messaging/extension"
 
@@ -16,6 +17,9 @@ import { ScanQRCodeModal } from "./mods/scan-qr-modal"
 export const App = () => {
   const { qrResult, showType, showQRModal, hideQRModal } = useQRModal()
   const config = useAppConfig()
+
+
+
 
   // 使用 useCallback 稳定化回调函数，防止 LinkQRInjector 不必要的重新渲染
   const handleGenerateQR = useCallback((url: string) => {

@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom/client"
 
 import "~/assets/tailwind.css"
+import "@/locales"
 
 import { debug } from "@/utils/debug"
 
@@ -233,16 +234,15 @@ export default defineContentScript({
         wrapper.id = "devtool-extension-root"
         uiContainer.append(wrapper)
 
+        // 直接渲染组件，WXT i18n 会自动处理
         const root = ReactDOM.createRoot(wrapper)
         root.render(<App />)
 
         return {
-          root,
           wrapper
         }
       },
       onRemove: (elements) => {
-        elements?.root.unmount()
         elements?.wrapper.remove()
         observer?.disconnect()
       }

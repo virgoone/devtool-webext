@@ -22,6 +22,7 @@ import {
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import "@/locales"
 import { z } from "zod"
 
 import Logo from "@/assets/icon.png"
@@ -97,8 +98,9 @@ const formSchema = z
   })
 
 export default function BasicSetting() {
+  const { t } = useTranslation()
   const config = useAppConfig()
-  const { t, i18n } = useTranslation(["options"])
+
   const [apiKeyInputType, setApiKeyInputType] = useState<"password" | "text">(
     "text"
   )
@@ -135,12 +137,12 @@ export default function BasicSetting() {
       <Form {...form}>
         <form className="space-y-4 w-[700px]">
           <div className="max-w-3xl">
-            <h1 className="text-2xl font-semibold mb-8">{t("basic.title")}</h1>
+            <h1 className="text-2xl font-semibold mb-8">{t("options.basic.title")}</h1>
 
             {/* Appearance Section */}
             <section className="mb-8">
               <h2 className="text-lg font-medium mb-4">
-                {t("basic.appearance.title")}
+                {t("options.basic.appearance.title")}
               </h2>
               <Card className="p-6 py-4 rounded-xl shadow-sm">
                 <CardContent className="p-0 space-y-2">
@@ -149,27 +151,25 @@ export default function BasicSetting() {
                     name="theme"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("basic.appearance.theme")}</FormLabel>
+                        <FormLabel>{t("options.basic.appearance.theme")}</FormLabel>
                         <FormControl>
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}>
                             <SelectTrigger>
                               <SelectValue
-                                placeholder={t(
-                                  "options.basic.appearance.placeholder"
-                                )}
+                                placeholder={t("options.basic.appearance.placeholder")}
                               />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="auto">
-                                {t("basic.appearance.options.auto")}
+                                {t("options.basic.appearance.options.auto")}
                               </SelectItem>
                               <SelectItem value="light">
-                                {t("basic.appearance.options.light")}
+                                {t("options.basic.appearance.options.light")}
                               </SelectItem>
                               <SelectItem value="dark">
-                                {t("basic.appearance.options.dark")}
+                                {t("options.basic.appearance.options.dark")}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -183,24 +183,22 @@ export default function BasicSetting() {
                     name="language"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("basic.language.title")}</FormLabel>
+                        <FormLabel>{t("options.basic.language.title")}</FormLabel>
                         <FormControl>
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}>
                             <SelectTrigger>
                               <SelectValue
-                                placeholder={t(
-                                  "options.basic.language.placeholder"
-                                )}
+                                placeholder={t("options.basic.language.placeholder")}
                               />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="zh">
-                                {t("basic.language.options.zh")}
+                                {t("options.basic.language.options.zh")}
                               </SelectItem>
                               <SelectItem value="en">
-                                {t("basic.language.options.en")}
+                                {t("options.basic.language.options.en")}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -213,10 +211,10 @@ export default function BasicSetting() {
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <QrCode className="w-4 h-4 text-gray-600" />
-                        <label className="text-base font-medium">{t("content.linkQRInjector.title")}</label>
+                        <label className="text-base font-medium">{t("linkQRInjectorTitle")}</label>
                       </div>
                       <p className="text-sm text-gray-500">
-                        {t("content.linkQRInjector.description")}
+                        {t("linkQRInjectorDescription")}
                       </p>
                     </div>
                     <Switch
@@ -282,7 +280,7 @@ export default function BasicSetting() {
             {/* AI Access Section */}
             <section className="mb-8">
               <h2 className="text-lg font-medium mb-4">
-                {t("basic.ai.title")}
+                {t("options.basic.ai.title")}
               </h2>
               <Card className="p-6 py-4 rounded-xl shadow-sm">
                 <CardContent className="p-0 space-y-2">
@@ -291,22 +289,22 @@ export default function BasicSetting() {
                     name="providerName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("basic.ai.provider.title")}</FormLabel>
+                        <FormLabel>{t("options.basic.ai.provider.title")}</FormLabel>
                         <FormControl>
                           <Select
                             defaultValue={field.value}
                             onValueChange={field.onChange}>
                             <SelectTrigger className="w-full">
                               <SelectValue
-                                placeholder={t("basic.ai.provider.placeholder")}
+                                placeholder={t("options.basic.ai.provider.placeholder")}
                               />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value={ServiceProvider.OpenAI}>
-                                {t("basic.ai.provider.options.openai")}
+                                {t("options.basic.ai.provider.options.openai")}
                               </SelectItem>
                               <SelectItem value={ServiceProvider.XAI}>
-                                {t("basic.ai.provider.options.xai")}
+                                {t("options.basic.ai.provider.options.xai")}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -321,14 +319,14 @@ export default function BasicSetting() {
                       name="apiKey"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("basic.ai.apikey.title")}</FormLabel>
+                          <FormLabel>{t("options.basic.ai.apikey.title")}</FormLabel>
                           <FormDescription>
-                            {t("basic.ai.apikey.description")}
+                            {t("options.basic.ai.apikey.description")}
                           </FormDescription>
                           <FormControl>
                             <div className="relative">
                               <Input
-                                placeholder={t("basic.ai.apikey.placeholder")}
+                                placeholder={t("options.basic.ai.apikey.placeholder")}
                                 type={apiKeyInputType}
                                 value={field.value}
                                 onChange={field.onChange}
@@ -361,12 +359,12 @@ export default function BasicSetting() {
 
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium">
-                      {t("basic.ai.model.title")}
+                      {t("options.basic.ai.model.title")}
                     </label>
                     <Select defaultValue="grok">
                       <SelectTrigger className="w-60">
                         <SelectValue
-                          placeholder={t("basic.ai.model.placeholder")}
+                          placeholder={t("options.basic.ai.model.placeholder")}
                         />
                       </SelectTrigger>
                       <SelectContent>
@@ -377,7 +375,7 @@ export default function BasicSetting() {
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label={t("basic.ai.model.refreshBtn")}>
+                      aria-label={t("options.basic.ai.model.refreshBtn")}>
                       <RefreshCw className="w-4 h-4" />
                     </Button>
                   </div>
@@ -388,7 +386,7 @@ export default function BasicSetting() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row justify-between items-center">
                           <FormLabel className="text-gray-500 text-sm">
-                            {t("basic.ai.customWebsite.title")}
+                            {t("options.basic.ai.customWebsite.title")}
                           </FormLabel>
                           <FormControl>
                             <Switch
@@ -408,9 +406,7 @@ export default function BasicSetting() {
                           <FormItem>
                             <FormControl>
                               <Input
-                                placeholder={t(
-                                  "basic.ai.customWebsite.placeholder"
-                                )}
+                                placeholder={t("options.basic.ai.customWebsite.placeholder")}
                                 value={field.value || ''}
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
@@ -430,7 +426,7 @@ export default function BasicSetting() {
                       render={({ field }) => (
                         <FormItem className="flex flex-row justify-between items-center">
                           <FormLabel className="text-gray-500 text-sm">
-                            {t("basic.ai.customModel.title")}
+                            {t("options.basic.ai.customModel.title")}
                           </FormLabel>
                           <FormControl>
                             <Switch
@@ -450,9 +446,7 @@ export default function BasicSetting() {
                           <FormItem>
                             <FormControl>
                               <Input
-                                placeholder={t(
-                                  "basic.ai.customModel.placeholder"
-                                )}
+                                placeholder={t("options.basic.ai.customModel.placeholder")}
                                 value={field.value || ''}
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
@@ -475,14 +469,14 @@ export default function BasicSetting() {
                 key="back"
                 type="reset"
                 variant="outline">
-                {t("basic.form.reset")}
+                {t("options.basic.form.reset")}
               </Button>
               <Button
                 className="flex-1"
                 key="submit"
                 type="button"
                 onClick={() => form.handleSubmit(onSubmit)()}>
-                {t("basic.form.save")}
+                {t("options.basic.form.save")}
               </Button>
             </div>
           </div>

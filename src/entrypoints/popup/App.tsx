@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import QRCodeStyling, {
   type CornerDotType,
   type CornerSquareType,
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { copyImageToClipboard } from "@/utils/copy-image"
 
 function IndexPopup() {
+  const { t } = useTranslation()
   const [options, setOptions] = useState<Options>({
     width: 300,
     height: 300,
@@ -129,7 +131,7 @@ function IndexPopup() {
               id="url"
               value={options.data}
               onChange={onDataChange}
-              placeholder={i18n.t("popup.input.placeholder")}
+              placeholder={t("popup.input.placeholder")}
             />
           )}
         </div>
@@ -139,15 +141,15 @@ function IndexPopup() {
           variant="outline"
           className="flex-1"
           onClick={onCopyClick}>
-          {copyStatus === "copying" ? i18n.t("popup.button.copying") :
-            copyStatus === "success" ? i18n.t("popup.button.copySuccess") :
-              copyStatus === "error" ? i18n.t("popup.button.copyError") : i18n.t("popup.button.copy")}
+          {copyStatus === "copying" ? t("popup.button.copying") :
+            copyStatus === "success" ? t("popup.button.copySuccess") :
+              copyStatus === "error" ? t("popup.button.copyError") : t("popup.button.copy")}
         </Button>
         <Button
           variant="default"
           className="flex-1"
           onClick={onDownloadClick}>
-          {i18n.t("popup.button.download")}
+          {t("popup.button.download")}
         </Button>
       </CardFooter>
     </Card>
