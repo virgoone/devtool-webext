@@ -80,6 +80,12 @@ export function QRCodeGenerator({
   const [copyStatus, setCopyStatus] = useState<
     "idle" | "copying" | "success" | "error"
   >("idle")
+  const [copyLinkStatus, setCopyLinkStatus] = useState<
+    "idle" | "copying" | "success" | "error"
+  >("idle")
+  const [copyEncodeLinkStatus, setCopyEncodeLinkStatus] = useState<
+    "idle" | "copying" | "success" | "error"
+  >("idle")
   const [inputValues, setInputValues] = useState<Record<string, string>>({})
   const [fixedRulesEnabled, setFixedRulesEnabled] = useState<
     Record<string, boolean>
@@ -245,22 +251,32 @@ export function QRCodeGenerator({
 
   // 复制链接
   const onCopyLinkClick = async () => {
+    setCopyLinkStatus("copying")
     try {
       await navigator.clipboard.writeText(finalUrl)
+      setCopyLinkStatus("success")
       toast.success(t("linkCopied"))
+      setTimeout(() => setCopyLinkStatus("idle"), 2000)
     } catch (error) {
+      setCopyLinkStatus("error")
       toast.error(t("linkCopyFailed"))
+      setTimeout(() => setCopyLinkStatus("idle"), 2000)
     }
   }
 
   // 复制编码链接
   const onCopyEncodeLinkClick = async () => {
+    setCopyEncodeLinkStatus("copying")
     try {
       const encodedUrl = encodeURIComponent(finalUrl)
       await navigator.clipboard.writeText(encodedUrl)
+      setCopyEncodeLinkStatus("success")
       toast.success(t("encodeLinkCopied"))
+      setTimeout(() => setCopyEncodeLinkStatus("idle"), 2000)
     } catch (error) {
+      setCopyEncodeLinkStatus("error")
       toast.error(t("encodeLinkCopyFailed"))
+      setTimeout(() => setCopyEncodeLinkStatus("idle"), 2000)
     }
   }
 
@@ -514,15 +530,37 @@ export function QRCodeGenerator({
                   variant="outline"
                   onClick={onCopyLinkClick}
                   className="flex-1 !cursor-pointer">
-                  <Link className="mr-2 h-4 w-4" />
-                  {t("copyLink")}
+                  {copyLinkStatus === "idle" && (
+                    <Link className="mr-2 h-4 w-4" />
+                  )}
+                  {copyLinkStatus === "success" && (
+                    <Check className="mr-2 h-4 w-4" />
+                  )}
+                  {copyLinkStatus === "copying"
+                    ? t("copying")
+                    : copyLinkStatus === "success"
+                      ? t("copySuccess")
+                      : copyLinkStatus === "error"
+                        ? t("copyError")
+                        : t("copyLink")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={onCopyEncodeLinkClick}
                   className="flex-1 !cursor-pointer">
-                  <Code className="mr-2 h-4 w-4" />
-                  {t("copyEncodeLink")}
+                  {copyEncodeLinkStatus === "idle" && (
+                    <Code className="mr-2 h-4 w-4" />
+                  )}
+                  {copyEncodeLinkStatus === "success" && (
+                    <Check className="mr-2 h-4 w-4" />
+                  )}
+                  {copyEncodeLinkStatus === "copying"
+                    ? t("copying")
+                    : copyEncodeLinkStatus === "success"
+                      ? t("copySuccess")
+                      : copyEncodeLinkStatus === "error"
+                        ? t("copyError")
+                        : t("copyEncodeLink")}
                 </Button>
               </div>
             )}
