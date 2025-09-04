@@ -1,9 +1,19 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
+
 import "@/locales"
 
-import { Check, ChevronDown, ChevronUp, Code, Copy, Download, ExternalLink, Link } from "lucide-react"
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  Copy,
+  Download,
+  ExternalLink,
+  Link
+} from "lucide-react"
 import QRCodeStyling, {
   type CornerDotType,
   type CornerSquareType,
@@ -18,7 +28,11 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -55,6 +69,12 @@ export function QRCodeGenerator({
 }: QRCodeGeneratorProps) {
   const [url, setUrl] = useState(initialContent)
   const [finalUrl, setFinalUrl] = useState(initialContent) // 最终的拼接URL
+
+  // 监听 initialContent 变化，更新 url 状态
+  useEffect(() => {
+    setUrl(initialContent)
+    setFinalUrl(initialContent)
+  }, [initialContent])
   const qrCode = useRef<any>(null)
   const ref = useRef<HTMLDivElement>(null)
   const [copyStatus, setCopyStatus] = useState<
@@ -64,7 +84,9 @@ export function QRCodeGenerator({
   const [fixedRulesEnabled, setFixedRulesEnabled] = useState<
     Record<string, boolean>
   >({})
-  const [isRuleConfigOpen, setIsRuleConfigOpen] = useState(ruleConfigDefaultOpen)
+  const [isRuleConfigOpen, setIsRuleConfigOpen] = useState(
+    ruleConfigDefaultOpen
+  )
   const { t } = useTranslation()
   const config = useAppConfig()
 
@@ -124,7 +146,13 @@ export function QRCodeGenerator({
       console.error("Invalid URL:", error)
       setFinalUrl(url)
     }
-  }, [url, inputValues, fixedRulesEnabled, config.qrRulesConfig, showRuleConfig])
+  }, [
+    url,
+    inputValues,
+    fixedRulesEnabled,
+    config.qrRulesConfig,
+    showRuleConfig
+  ])
 
   useEffect(() => {
     const options: Options = {
@@ -250,10 +278,7 @@ export function QRCodeGenerator({
     ? config.qrRulesConfig.rules.filter((rule) => {
         if (!rule.enabled) return false
         // 检查域名是否匹配
-        return matchesPattern(
-          window.location.href,
-          rule.domainPattern || "*"
-        )
+        return matchesPattern(window.location.href, rule.domainPattern || "*")
       })
     : []
 
@@ -264,11 +289,11 @@ export function QRCodeGenerator({
         id="canvas"
         ref={ref}
         className="flex justify-center m-auto flex-shrink-0"
-        style={{ 
-          width: `${size}px`, 
-          height: `${size}px`, 
-          maxWidth: '90vw', 
-          maxHeight: `${size}px` 
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          maxWidth: "90vw",
+          maxHeight: `${size}px`
         }}
       />
 
@@ -292,11 +317,10 @@ export function QRCodeGenerator({
       {showRuleConfig &&
         config.qrRulesConfig.globalEnabled &&
         availableRules.length > 0 && (
-          <Collapsible 
-            open={isRuleConfigOpen} 
+          <Collapsible
+            open={isRuleConfigOpen}
             onOpenChange={setIsRuleConfigOpen}
-            className="space-y-3"
-          >
+            className="space-y-3">
             <hr className="border-gray-200" />
             <CollapsibleTrigger asChild>
               <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-md -m-2">
@@ -467,9 +491,7 @@ export function QRCodeGenerator({
                 onClick={onCopyClick}
                 className="flex-1 !cursor-pointer">
                 {copyStatus === "idle" && <Copy className="mr-2 h-4 w-4" />}
-                {copyStatus === "success" && (
-                  <Check className="mr-2 h-4 w-4" />
-                )}
+                {copyStatus === "success" && <Check className="mr-2 h-4 w-4" />}
                 {copyStatus === "copying"
                   ? t("copying")
                   : copyStatus === "success"
@@ -512,9 +534,7 @@ export function QRCodeGenerator({
               onClick={onCopyClick}
               className="!cursor-pointer">
               {copyStatus === "idle" && <Copy className="mr-2 h-4 w-4" />}
-              {copyStatus === "success" && (
-                <Check className="mr-2 h-4 w-4" />
-              )}
+              {copyStatus === "success" && <Check className="mr-2 h-4 w-4" />}
               {copyStatus === "copying"
                 ? t("copying")
                 : copyStatus === "success"

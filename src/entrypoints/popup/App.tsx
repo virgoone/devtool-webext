@@ -8,20 +8,31 @@ function IndexPopup() {
     useState<string>("https://douni.one")
 
   useEffect(() => {
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search)
-    const text = urlParams.get("text")
+    const getCurrentTabUrl = async () => {
+      try {
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search)
+        const text = urlParams.get("text")
 
-    if (text) {
-      setInitialContent(decodeURIComponent(text))
-    } else {
-      // If no text parameter, get current tab URL
-      chrome.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
-        if (tabs[0]?.url) {
-          setInitialContent(tabs[0].url)
+        if (text) {
+          setInitialContent(decodeURIComponent(text))
+        } else {
+          // If no text parameter, get current tab URL
+          const tabs = await chrome.tabs.query({
+            currentWindow: true,
+            active: true
+          })
+          if (tabs[0]?.url) {
+            setInitialContent(tabs[0].url)
+          }
         }
-      })
+      } catch (error) {
+        console.error("Failed to get current tab URL:", error)
+      }
     }
+
+    // Get URL immediately when popup opens
+    getCurrentTabUrl()
   }, [])
 
   return (
