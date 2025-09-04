@@ -100,29 +100,48 @@ export function QRCodeGenerator({
   useEffect(() => {
     if (!showRuleConfig) return
 
-    const initialFixedRules: Record<string, boolean> = {}
-    const initialInputValues: Record<string, string> = {}
+    const initializeRules = async () => {
+      const initialFixedRules: Record<string, boolean> = {}
+      const initialInputValues: Record<string, string> = {}
 
-    // 获取当前页面URL进行域名匹配
-    const currentUrl = window.location.href
+      // 获取当前页面URL进行域名匹配
+      let currentUrl = window.location.href
 
-    config.qrRulesConfig.rules.forEach((rule) => {
-      // 检查规则是否启用且域名匹配
-      if (
-        rule.enabled &&
-        matchesPattern(currentUrl, rule.domainPattern || "*")
-      ) {
-        initialFixedRules[rule.id] = true // 规则默认启用
-        rule.parameters.forEach((param) => {
-          if (param.type === QRRuleType.Input && param.defaultValue) {
-            initialInputValues[param.id] = param.defaultValue
+      // 如果是在popup中，尝试获取当前活跃tab的URL
+      if (window.location.protocol === "chrome-extension:") {
+        try {
+          const tabs = await chrome.tabs.query({
+            currentWindow: true,
+            active: true
+          })
+          if (tabs[0]?.url) {
+            currentUrl = tabs[0].url
           }
-        })
+        } catch (error) {
+          console.warn("Failed to get active tab URL:", error)
+        }
       }
-    })
 
-    setFixedRulesEnabled(initialFixedRules)
-    setInputValues(initialInputValues)
+      config.qrRulesConfig.rules.forEach((rule) => {
+        // 检查规则是否启用且域名匹配
+        if (
+          rule.enabled &&
+          matchesPattern(currentUrl, rule.domainPattern || "*")
+        ) {
+          initialFixedRules[rule.id] = true // 规则默认启用
+          rule.parameters.forEach((param) => {
+            if (param.type === QRRuleType.Input && param.defaultValue) {
+              initialInputValues[param.id] = param.defaultValue
+            }
+          })
+        }
+      })
+
+      setFixedRulesEnabled(initialFixedRules)
+      setInputValues(initialInputValues)
+    }
+
+    initializeRules()
   }, [config.qrRulesConfig.rules, showRuleConfig])
 
   // 构建最终URL
@@ -290,13 +309,47 @@ export function QRCodeGenerator({
     setFixedRulesEnabled((prev) => ({ ...prev, [ruleId]: enabled }))
   }
 
-  const availableRules = showRuleConfig
-    ? config.qrRulesConfig.rules.filter((rule) => {
+  const [availableRules, setAvailableRules] = useState<any[]>([])
+
+  // 更新可用规则列表
+  useEffect(() => {
+    if (!showRuleConfig) {
+      setAvailableRules([])
+      return
+    }
+
+    const updateAvailableRules = async () => {
+      let currentUrl = window.location.href
+
+      // 如果是在popup中，尝试获取当前活跃tab的URL
+      if (window.location.protocol === "chrome-extension:") {
+        try {
+          const tabs = await chrome.tabs.query({
+            currentWindow: true,
+            active: true
+          })
+          if (tabs[0]?.url) {
+            currentUrl = tabs[0].url
+          }
+        } catch (error) {
+          console.warn(
+            "Failed to get active tab URL for availableRules:",
+            error
+          )
+        }
+      }
+
+      const filteredRules = config.qrRulesConfig.rules.filter((rule) => {
         if (!rule.enabled) return false
         // 检查域名是否匹配
-        return matchesPattern(window.location.href, rule.domainPattern || "*")
+        return matchesPattern(currentUrl, rule.domainPattern || "*")
       })
-    : []
+
+      setAvailableRules(filteredRules)
+    }
+
+    updateAvailableRules()
+  }, [config.qrRulesConfig.rules, showRuleConfig])
 
   return (
     <div className={`space-y-4 ${className}`}>
