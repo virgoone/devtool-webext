@@ -156,21 +156,40 @@ export function QRCodeGenerator({
       return
     }
 
-    try {
-      // 使用store中的buildQRUrl方法，传入当前URL进行域名匹配和规则启用状态
-      const currentUrl = window.location.href
+    const buildFinalUrl = async () => {
+      try {
+        // 获取当前页面URL进行域名匹配
+        let currentUrl = window.location.href
 
-      const finalUrl = config.buildQRUrl(
-        url,
-        inputValues,
-        currentUrl,
-        fixedRulesEnabled
-      )
-      setFinalUrl(finalUrl)
-    } catch (error) {
-      console.error("Invalid URL:", error)
-      setFinalUrl(url)
+        // 如果是在popup中，尝试获取当前活跃tab的URL
+        if (window.location.protocol === "chrome-extension:") {
+          try {
+            const tabs = await chrome.tabs.query({
+              currentWindow: true,
+              active: true
+            })
+            if (tabs[0]?.url) {
+              currentUrl = tabs[0].url
+            }
+          } catch (error) {
+            console.warn("Failed to get active tab URL for buildQRUrl:", error)
+          }
+        }
+
+        const finalUrl = config.buildQRUrl(
+          url,
+          inputValues,
+          currentUrl,
+          fixedRulesEnabled
+        )
+        setFinalUrl(finalUrl)
+      } catch (error) {
+        console.error("Invalid URL:", error)
+        setFinalUrl(url)
+      }
     }
+
+    buildFinalUrl()
   }, [
     url,
     inputValues,
@@ -471,7 +490,7 @@ export function QRCodeGenerator({
                     {/* 参数列表 */}
                     {fixedRulesEnabled[rule.id] !== false && (
                       <div className="pl-6 space-y-2">
-                        {rule.parameters.map((param) => (
+                        {rule.parameters.map((param: any) => (
                           <div
                             key={param.id}
                             className="bg-white border border-gray-200 rounded-md p-2">
