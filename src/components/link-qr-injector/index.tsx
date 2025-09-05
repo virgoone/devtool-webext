@@ -400,9 +400,27 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       typeof element?.className === "string"
         ? element?.className?.toLowerCase?.()
         : ""
-    const skipClasses = ["code", "highlight", "script", "json", "devtool"]
+    const skipClasses = [
+      "code",
+      "highlight",
+      "script",
+      "json",
+      "devtool",
+      "monaco",
+      "editor",
+      "cm-"
+    ]
     if (className && skipClasses.some((cls) => className.includes(cls)))
       return true
+
+    // 检查是否在monaco editor或其他代码编辑器中
+    if (
+      element.closest(
+        '.monaco-editor, .CodeMirror, .ace_editor, [class*="editor"], [class*="monaco"]'
+      )
+    ) {
+      return true
+    }
 
     // 跳过已经被我们处理过的容器
     if (element.classList.contains("devtool-url-processed")) return true
@@ -424,6 +442,16 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       return true
     }
 
+    // 检查是否在monaco editor或其他代码编辑器中
+    if (
+      link.closest(
+        '.monaco-editor, .CodeMirror, .ace_editor, [class*="editor"], [class*="monaco"]'
+      )
+    ) {
+      debug(`跳过编辑器中的链接: ${linkText}`)
+      return true
+    }
+
     // 检查链接是否有特殊类名
     const className =
       typeof link?.className === "string" ? link.className.toLowerCase() : ""
@@ -434,7 +462,9 @@ export function LinkQRInjector({ onGenerateQR, enabled }: LinkQRInjectorProps) {
       "menu",
       "tab",
       "close",
-      "toggle"
+      "toggle",
+      "monaco",
+      "editor"
     ]
     if (skipClasses.some((cls) => className.includes(cls))) {
       debug(`跳过特殊类名链接: ${className}`)
