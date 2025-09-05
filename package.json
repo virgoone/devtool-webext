@@ -3,7 +3,7 @@
   "displayName": "Devtool",
   "description": "Devtool",
   "private": true,
-  "version": "0.0.10",
+  "version": "0.0.11",
   "type": "module",
   "packageManager": "pnpm@10.15.1",
   "scripts": {
